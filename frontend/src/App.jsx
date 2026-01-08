@@ -7,7 +7,7 @@ const App = () => {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch('http://localhost:3000/');
+        const res = await fetch('https://modest-clarity-production.up.railway.app/');
 
         if (!res.ok) {
           throw new Error('Server error');
