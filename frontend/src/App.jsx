@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 const App = () => {
   // states:
   const [status, setStatus] = useState("Checking");
+  const BACKEND_URL = import.meta.env.MYBACKEND_URL;
 
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch('https://modest-clarity-production.up.railway.app/');
+        const res = await fetch(BACKEND_URL);
 
         if (!res.ok) {
           throw new Error('Server error');
