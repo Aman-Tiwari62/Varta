@@ -1,0 +1,55 @@
+# =========================
+# Node (both frontend & backend)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Backend specific
+# =========================
+backend/uploads/
+backend/logs/
+
+# Database files (local)
+*.db
+*.sqlite
+
+# =========================
+# Frontend build output
+# =========================
+frontend/build/
+frontend/dist/
+
+# Vite cache
+frontend/.vite/
+
+# =========================
+# Testing / Coverage
+# =========================
+coverage/
+
+# =========================
+# OS / Editor junk
+# =========================
+.DS_Store
+Thumbs.db
+
+# VS Code (keep extensions if you want)
+.vscode/
+!.vscode/extensions.json
+
+# =========================
+# Security
+# =========================
+*.pem
+*.key
