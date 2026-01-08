@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 const App = () => {
   // states:
   const [status, setStatus] = useState("Checking");
-  const BACKEND_URL = import.meta.env.MYBACKEND_URL;
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const checkBackend = async () => {
@@ -14,11 +14,11 @@ const App = () => {
           throw new Error('Server error');
         }
 
-        setStatus('connected');
+        setStatus('connected to the server');
 
       } catch (error) {
         console.log(error);
-        setStatus('not-connected');
+        setStatus('not-connected to the server');
       }
     };
 
