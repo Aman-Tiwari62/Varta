@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Routes, Route } from "react-router-dom";
+import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
+import RegisterEmail from './pages/Register/RegisterEmail';
+import VerifyOtp from './pages/Register/VerifyOtp';
+import RegisterDetails from './pages/Register/RegisterDetails';
 
 const App = () => {
   // states:
@@ -25,10 +31,24 @@ const App = () => {
     checkBackend();
   }, []);
 
+  console.log(`Connecting to the server: ${status}`)
+
+  function handleClick(){
+    
+  }
+
   return (
     <div>
-      <h1>Chat App</h1>
-      <p>message: {status}</p>
+      <div className='bg-amber-200'>
+        <p>{status}</p>
+      </div>
+      <Routes>
+        <Route path='/' element = {<LandingPage />} />
+        <Route path='/login' element = {<Login />} />
+        <Route path='/register/email' element = {<RegisterEmail />} />
+        <Route path='/register/otp' element = {<VerifyOtp />} />
+        <Route path='/register/details' element = {<RegisterDetails />} />
+      </Routes>
     </div>
   )
 }
