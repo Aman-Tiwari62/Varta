@@ -43,7 +43,7 @@ const VerifyOtp = () => {
       setSuccessMessage("");
       setErrorMessage("");
       
-      const res = await fetch(`${BACKEND_URL}auth/verifyOtp`, {
+      const res = await fetch(`${BACKEND_URL}/auth/verifyOtp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -77,7 +77,7 @@ const VerifyOtp = () => {
       setSuccessMessage("");
       setErrorMessage("");
 
-      const res = await fetch(`${BACKEND_URL}auth/registerEmail`, {
+      const res = await fetch(`${BACKEND_URL}/auth/registerEmail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

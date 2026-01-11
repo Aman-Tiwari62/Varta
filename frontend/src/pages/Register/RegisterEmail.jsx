@@ -34,7 +34,7 @@ const RegisterEmail = () => {
 
       console.log("email format pass");
       
-      const res = await fetch(`${BACKEND_URL}auth/registerEmail`, {
+      const res = await fetch(`${BACKEND_URL}/auth/registerEmail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
