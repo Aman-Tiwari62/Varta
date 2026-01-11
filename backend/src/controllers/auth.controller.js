@@ -81,7 +81,7 @@ export const registerEmail = async (req,res) => {
 
         const {otp, hashedOtp} = await generateOtp();
 
-        await emailTo(email,otp);
+        // await emailTo(email,otp);
         const newRecord = await EmailRecord.create({
             email,
             attempts: 0,
