@@ -8,7 +8,7 @@ import RegisterDetails from './pages/Register/RegisterDetails';
 
 const App = () => {
   // states:
-  const [status, setStatus] = useState("Checking");
+  const [status, setStatus] = useState("Checking...");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {

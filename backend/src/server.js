@@ -1,16 +1,24 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import authRoutes from './routes/auth.route.js'
+import connectDB from './config/db.js';
 dotenv.config();
 
 const app = express();
+
+connectDB();
 
 app.use(cors({
     origin: process.env.CLIENT_URI,
     credentials: true
 }));
-  
 
+app.use(express.json());
+
+app.use('/auth', authRoutes)
+
+// for testing:
 app.get('/', (req, res) => {
     try{
         res.status(200).json({
@@ -26,6 +34,7 @@ app.get('/', (req, res) => {
         })
     }
 })
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server listening on port ${process.env.PORT}`);
