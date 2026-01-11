@@ -59,7 +59,20 @@ export const registerEmail = async (req,res) => {
             record.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
             record.resendAvailableAt = new Date(Date.now() + 1 * 60 * 1000);
 
-            await emailTo(email,otp);
+            // await emailTo(email,otp);
+            sendEmail({
+                to: email,
+                subject: "Your OTP Code",
+                html: `<h2>Your OTP</h2><p><b>${otp}</b></p>`,
+                text: `Your OTP is ${otp}`
+              })
+              .then(() => {
+                console.log("OTP email sent to:", email);
+              })
+              .catch(err => {
+                console.error("OTP email failed:", err.message);
+              });
+              
 
             await record.save();
 
@@ -82,6 +95,20 @@ export const registerEmail = async (req,res) => {
         const {otp, hashedOtp} = await generateOtp();
 
         // await emailTo(email,otp);
+        sendEmail({
+            to: email,
+            subject: "Your OTP Code",
+            html: `<h2>Your OTP</h2><p><b>${otp}</b></p>`,
+            text: `Your OTP is ${otp}`
+          })
+          .then(() => {
+            console.log("OTP email sent to:", email);
+          })
+          .catch(err => {
+            console.error("OTP email failed:", err.message);
+          });
+                   
+
         const newRecord = await EmailRecord.create({
             email,
             attempts: 0,

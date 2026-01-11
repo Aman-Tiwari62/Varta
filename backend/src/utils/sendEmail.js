@@ -1,29 +1,22 @@
-import nodemailer from "nodemailer";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 import dotenv from 'dotenv';
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,        // your gmail
-    pass: process.env.EMAIL_PASS // app password (16 chars)
-  }
-});
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+
+const api = new SibApiV3Sdk.TransactionalEmailsApi();
 
 export const sendEmail = async ({ to, subject, html, text }) => {
-  try {
-    const mailOptions = {
-      from: `"Varta" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      text,
-      html,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    return info;
-  } catch (error) {
-    console.error("Email send failed:", error);
-    throw error;
-  }
+  await api.sendTransacEmail({
+    sender: {
+      name: "Varta",
+      email: "amaniiitb27@gmail.com" // or your real email
+    },    
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+    textContent: text
+  });
 };
+
