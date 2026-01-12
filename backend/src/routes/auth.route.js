@@ -1,10 +1,14 @@
 import express from 'express';
-import { registerEmail, verifyOtp } from '../controllers/auth.controller.js';
+import { registerEmail, verifyOtp, fillDetails, refreshAccessToken } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
 router.post('/registerEmail', registerEmail)
 
 router.post('/verifyOtp', verifyOtp)
+
+router.post('/fillDetails', fillDetails)
+
+router.get('/refresh', refreshAccessToken )
 
 export default router;

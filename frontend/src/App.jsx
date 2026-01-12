@@ -5,9 +5,13 @@ import LandingPage from './pages/LandingPage';
 import RegisterEmail from './pages/Register/RegisterEmail';
 import VerifyOtp from './pages/Register/VerifyOtp';
 import RegisterDetails from './pages/Register/RegisterDetails';
+import UserHome from './pages/UserHome';
+import { useAuth } from './context/AuthContext';
 
 const App = () => {
-  // states:
+
+  const { isAuth, loading } = useAuth();
+
   const [status, setStatus] = useState("Checking...");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -33,8 +37,12 @@ const App = () => {
 
   console.log(`Connecting to the server: ${status}`)
 
-  function handleClick(){
-    
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -43,11 +51,15 @@ const App = () => {
         <p>{status}</p>
       </div>
       <Routes>
-        <Route path='/' element = {<LandingPage />} />
-        <Route path='/login' element = {<Login />} />
-        <Route path='/register/email' element = {<RegisterEmail />} />
-        <Route path='/register/otp' element = {<VerifyOtp />} />
-        <Route path='/register/details' element = {<RegisterDetails />} />
+      <Route
+        path="/"
+        element={isAuth ? <UserHome /> : <LandingPage />}
+      />
+        
+        {!isAuth && <Route path="/login" element={<Login />} />}
+        {!isAuth && <Route path="/register/email" element={<RegisterEmail />} />}
+        {!isAuth && <Route path="/register/otp" element={<VerifyOtp />} />}
+        {!isAuth && <Route path="/register/details" element={<RegisterDetails />} />}
       </Routes>
     </div>
   )
