@@ -395,4 +395,81 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
+export const login = async (req,res) => {
+  try{
+
+    const {email, password} = req.body;
+
+    if(!email || !password) {
+      return res.status(400).json({
+        success:false,
+        message:"Missing Credentials"
+      })
+    }
+
+    // email format check:
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+          success:false,
+          message:"Invalid email format"
+      })
+    }
+
+    if(password.length < 8){
+      return res.status(400).json({
+        success:false,
+        message:"Password must be atleast 8 characters long."
+      })
+    }
+
+    const user = await User.findOne({email}).select("+password")
+
+    if(!user){
+      return res.status(400).json({
+        success:false,
+        message:"Invalid credentials"
+      })
+    }
+
+    const isPasswordCorrect = await user.comparePassword(password);
+
+    if(!isPasswordCorrect){
+      return res.status(400).json({
+        success:false,
+        message:"Incorrect password"
+      })
+    }
+
+    // 4. Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // 5. Save refresh token in DB
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    // 6. Replace refresh token cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // 7. Send response
+    return res.status(200).json({
+      success: true,
+      accessToken: accessToken,
+      user
+    });
+
+  } catch (error){
+    console.log(error);
+    res.status(500).json({
+      success:false,
+      message:"Internal Server Error"
+    })
+  }
+}
+
   
