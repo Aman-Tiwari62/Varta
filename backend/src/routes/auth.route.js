@@ -9,6 +9,6 @@ router.post('/verifyOtp', verifyOtp)
 
 router.post('/fillDetails', fillDetails)
 
-router.get('/refresh', refreshAccessToken )
+router.post('/refresh', refreshAccessToken )
 
 export default router;

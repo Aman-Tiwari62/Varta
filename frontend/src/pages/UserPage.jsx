@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAuth } from '../context/AuthContext'
 
-const UserHome = () => {
+const UserPage = () => {
     const {user} = useAuth();
   return (
     <div>
@@ -13,4 +13,4 @@ const UserHome = () => {
   )
 }
 
-export default UserHome
+export default UserPage

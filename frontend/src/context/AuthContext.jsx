@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
     const bootstrapAuth = async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
-          method: "GET",
+          method: "POST",
           credentials: "include",
         });
 
@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
 
         const data = await res.json();
 
-        // ✅ store BOTH
         setAccessToken(data.accessToken);
         setUser(data.user);
       } catch {
@@ -34,6 +33,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     bootstrapAuth();
+
   }, []);
 
   // 🔓 Logout helper
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         accessToken,
-        isAuth: !!user,
+        isAuthenticated: !!accessToken,
         loading,
         setUser,
         setAccessToken,

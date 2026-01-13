@@ -266,6 +266,7 @@ export const fillDetails = async (req, res) => {
             })
         }
 
+        
         const user = await User.create({
             name,
             username,
@@ -273,14 +274,25 @@ export const fillDetails = async (req, res) => {
             password, // plaintext here
         });
 
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+
+        // const hashedRefreshToken = crypto
+        // .createHash("sha256")
+        // .update(refreshToken)
+        // .digest("hex");
+
+        // Save refresh token in DB
+        user.refreshToken = refreshToken;
+        await user.save();
+
+
         // 9. Clear registration token
         res.clearCookie("registrationToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         });
-        const accessToken = generateAccessToken(user);
-        const refreshToken = generateRefreshToken(user);
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -292,13 +304,8 @@ export const fillDetails = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Registration completed",
+            user,
             accessToken, // send access token in response
-            user: {
-              id: user._id,
-              name: user.name,
-              username: user.username,
-              email: user.email,
-            },
         });
 
     } catch(error){
@@ -311,30 +318,81 @@ export const fillDetails = async (req, res) => {
 }
 
 export const refreshAccessToken = async (req, res) => {
-    const refreshToken = req.cookies?.refreshToken;
-  
-    if (!refreshToken) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-  
-    let decoded;
-    try {
-      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    } catch {
-      return res.status(403).json({ message: "Invalid refresh token" });
+  try {
+    // 1. Get refresh token from cookie
+    const oldRefreshToken = req.cookies?.refreshToken;
+
+    if (!oldRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token missing",
+      });
     }
 
-    const user = await User.findById(decoded.userId);
-  
-    const accessToken = jwt.sign(
-      {
-        userId: decoded.userId,
-        type: "access",
-      },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
-  
-    res.status(200).json({ accessToken, user });
+    // 2. Verify refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        oldRefreshToken,
+        process.env.JWT_REFRESH_SECRET
+      );
+    } catch (err) {
+      return res.status(402).json({
+        success: false,
+        message: "Invalid or expired refresh token",
+      });
+    }
+
+    // 3. Find user and validate refresh token
+    const user = await User.findById(decoded.userId).select("+refreshToken");
+    if (!user) {
+      return res.status(403).json({ message: "User not found" });
+    }
+    
+    if (!user.refreshToken) {
+      return res.status(404).json({ message: "No refresh token stored" });
+    }
+    
+    if (user.refreshToken !== oldRefreshToken) {
+      // token reuse detected
+      user.refreshToken = null; // invalidate session
+      await user.save();
+    
+      return res.status(405).json({
+        message: "Refresh token reuse detected",
+      });
+    }
+
+    // 4. Generate new tokens
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    // 5. Save new refresh token in DB (rotation)
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    // 6. Replace refresh token cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // 7. Send response
+    return res.status(200).json({
+      success: true,
+      accessToken: newAccessToken,
+      user
+    });
+
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
+
   

@@ -36,7 +36,7 @@ const RegisterDetails = () => {
       }
       setUser(data.user);
       setAccessToken(data.accessToken);
-      navigate('/');
+      navigate('/user');
     } catch(error){
         setMessage(error.message || "Something went wrong")
 
