@@ -8,6 +8,10 @@ import ProtectedRoute from './pages/ProtectedRoute';
 import PublicRoute from './pages/PublicRoute';
 import UserPage from './pages/UserPage';
 import LandingPage from './pages/LandingPage';
+import Search from './pages/Search';
+import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
+import Chat from './pages/Chat';
 
 const App = () => {
 
@@ -25,7 +29,12 @@ const App = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/user" element={<UserPage/>} />
+          <Route path="/user" element={<UserPage/>} >
+            <Route path="search" element={<Search />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="chat/*" element={<Chat />} />
+          </Route>
         </Route>
 
       </Routes>
