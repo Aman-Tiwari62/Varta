@@ -25,6 +25,11 @@ const UserPage = () => {
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           <NavItem
+            to="chat"
+            icon={MessageCircle}
+            label="Chat"
+          />
+          <NavItem
             to="search"
             icon={Search}
             label="Search"
@@ -34,11 +39,6 @@ const UserPage = () => {
             to="notifications"
             icon={Bell}
             label="Notifications"
-          />
-          <NavItem
-            to="chat"
-            icon={MessageCircle}
-            label="Chat"
           />
           <NavItem
             to="profile"

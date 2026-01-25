@@ -12,7 +12,7 @@ const PublicRoute = () => {
     );
   }
 
-  return isAuthenticated ? <Navigate to="/user" replace /> : <Outlet />;
+  return isAuthenticated ? <Navigate to="/user/chat" replace /> : <Outlet />;
 };
 
 export default PublicRoute;

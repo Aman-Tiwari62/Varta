@@ -1,33 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const mockUsers = [
-  { id: 1, username: "aman" },
-  { id: 2, username: "arjun" },
-  { id: 3, username: "rohit" },
-  { id: 4, username: "ankita" },
-  { id: 5, username: "neha" },
-];
 
 const SearchPage = () => {
   const [query, setQuery] = useState("");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const filteredUsers = mockUsers.filter(user =>
-    user.username.toLowerCase().includes(query.toLowerCase())
-  );
+  const navigate = useNavigate();
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setUsers([]);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(
+          `${BACKEND_URL}/user/search?q=${query}`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch users");
+        }
+
+        const data = await res.json();
+
+        if (data.success) {
+          setUsers(data.users);   // ✅ IMPORTANT FIX
+        } else {
+          setUsers([]);
+        }
+
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError("Something went wrong");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // debounce
+    const timeoutId = setTimeout(fetchUsers, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [query]);
 
   return (
-    /* Center container */
     <div className="flex justify-center">
-
-      {/* Content width */}
       <div className="w-full max-w-xl">
 
-        {/* Heading */}
         <h1 className="text-2xl font-bold text-emerald-700 mb-6 text-center">
           Search Users
         </h1>
 
-        {/* Search Input */}
         <input
           type="text"
           placeholder="Search by username..."
@@ -37,35 +77,69 @@ const SearchPage = () => {
                      focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
 
-        {/* Suggestions */}
         {query && (
           <div className="mt-4 bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map(user => (
-                <UserRow key={user.id} username={user.username} />
-              ))
-            ) : (
+
+            {loading && (
+              <p className="px-4 py-3 text-sm text-gray-500 text-center">
+                Searching...
+              </p>
+            )}
+
+            {!loading && error && (
+              <p className="px-4 py-3 text-sm text-red-500 text-center">
+                {error}
+              </p>
+            )}
+
+            {!loading && !error && users.length > 0 && (
+               users.map(user => (
+                <UserRow
+                  key={user._id}
+                  username={user.username}
+                  avatar={user.avatar}
+                  onClick={() =>
+                    navigate(`/user/people/${user.username}`)
+                  }
+                />
+                ))
+            )}
+
+
+            {!loading && !error && users.length === 0 && (
               <p className="px-4 py-3 text-sm text-gray-500 text-center">
                 No users found
               </p>
             )}
+
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
-const UserRow = ({ username }) => {
+const UserRow = ({ username, avatar, onClick }) => {
   return (
-    <div className="px-4 py-3 cursor-pointer hover:bg-emerald-50 flex items-center gap-3">
-      {/* Avatar */}
-      <div className="w-9 h-9 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-700 font-semibold">
-        {username[0].toUpperCase()}
-      </div>
+    <div
+      onClick={onClick}
+      className="px-4 py-3 cursor-pointer hover:bg-emerald-50
+                 flex items-center gap-3 transition"
+    >
+      {avatar ? (
+        <img
+          src={avatar}
+          alt={username}
+          className="w-9 h-9 rounded-full object-cover"
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-full bg-emerald-200
+                        flex items-center justify-center
+                        text-emerald-700 font-semibold">
+          {username[0].toUpperCase()}
+        </div>
+      )}
 
-      {/* Username */}
       <p className="font-medium text-gray-800">
         {username}
       </p>
@@ -73,4 +147,7 @@ const UserRow = ({ username }) => {
   );
 };
 
+
 export default SearchPage;
+
+

@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       index:true,
+      select:false,
     },
     password: {
       type: String,
@@ -37,19 +38,7 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
       select: false,
-    },  
-    followers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-      }
-    ],
-    following: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-      }
-    ],  
+    },    
   },
   {
     timestamps: true,

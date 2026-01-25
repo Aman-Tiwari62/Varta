@@ -44,7 +44,7 @@ const Login = () => {
       }
       setUser(data.user);
       setAccessToken(data.accessToken);
-      navigate('/user');
+      navigate('/user/chat');
     } catch(error){
       console.log(error);
       setMessage(error.message || 'something went wrong');

@@ -12,6 +12,7 @@ import Search from './pages/Search';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import PeopleProfile from './pages/People';
 
 const App = () => {
 
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat/*" element={<Chat />} />
+            <Route path="people/:username" element = {<PeopleProfile/>}/>
           </Route>
         </Route>
 
