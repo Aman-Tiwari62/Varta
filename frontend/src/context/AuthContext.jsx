@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext();
+const AuthContext = createContext(); // Think of this as a global storage box.
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

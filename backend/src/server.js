@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/auth.route.js'
 import userRoutes from './routes/user.route.js'
+import chatRoutes from './routes/chat.route.js'
 import connectDB from './config/db.js';
 import cookieParser from 'cookie-parser'
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/chat', chatRoutes);
 
 // for testing:
 app.get('/', (req, res) => {

@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { fetchWithAuth } from "../utils/fetchWithAuth";
+import { useAuth } from "../context/AuthContext";
 
 const PeopleProfile = () => {
   const { username } = useParams();          // ✅ ROUTE PARAM
   const navigate = useNavigate();
+  const {accessToken, setAccessToken, setUser, logout} = useAuth();
 
-  const [user, setUser] = useState(null);
+  const [person, setPerson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -37,7 +40,7 @@ const PeopleProfile = () => {
         const data = await res.json();
 
         if (data.success) {
-          setUser(data.user);
+          setPerson(data.user);
         } else {
           setError("User not found");
         }
@@ -55,6 +58,42 @@ const PeopleProfile = () => {
 
     return () => controller.abort();
   }, [username]);
+
+  // handle message button click:
+  const handleMessageClick = async () => {
+    try {
+      const res = await fetchWithAuth({
+        url: "/chat/conversation",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: person._id, // receiver
+          }),
+        },
+        accessToken,
+        setAccessToken,
+        setUser,
+        logout,
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to start conversation");
+      }
+
+      const data = await res.json();
+
+      const conversationId = data.conversation._id;
+
+      // ✅ Navigate ONLY after we have conversationId
+      navigate(`/user/chat/${conversationId}`);
+    } catch (err) {
+      console.error(err);
+      alert("Could not open chat. Please try again.");
+    }
+  };
 
   // ---------------- UI STATES ----------------
 
@@ -74,7 +113,7 @@ const PeopleProfile = () => {
     );
   }
 
-  if (!user) return null;
+  if (!person) return null;
 
   // ---------------- MAIN UI ----------------
 
@@ -84,10 +123,10 @@ const PeopleProfile = () => {
 
         {/* Avatar */}
         <div className="flex justify-center">
-          {user.avatar ? (
+          {person.avatar ? (
             <img
-              src={user.avatar}
-              alt={user.username}
+              src={person.avatar}
+              alt={person.username}
               className="w-24 h-24 rounded-full object-cover"
             />
           ) : (
@@ -96,26 +135,26 @@ const PeopleProfile = () => {
                          flex items-center justify-center
                          text-emerald-700 text-3xl font-bold"
             >
-              {user.username[0].toUpperCase()}
+              {person.username[0].toUpperCase()}
             </div>
           )}
         </div>
 
         {/* Name & Username */}
         <div className="text-center mt-4">
-          {user.name && (
+          {person.name && (
             <h2 className="text-xl font-semibold text-gray-800">
-              {user.name}
+              {person.name}
             </h2>
           )}
           <p className="text-gray-500">
-            @{user.username}
+            @{person.username}
           </p>
         </div>
 
         {/* Message Button */}
         <button
-          onClick={() => navigate(`/chat/${user._id}`)}
+          onClick={handleMessageClick}
           className="mt-6 w-full py-3 rounded-xl
                      bg-emerald-600 text-white font-medium
                      hover:bg-emerald-700 transition
@@ -124,6 +163,7 @@ const PeopleProfile = () => {
           Message
         </button>
       </div>
+      <p className="text-red-500">{error}</p>
     </div>
   );
 };

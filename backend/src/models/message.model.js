@@ -1,3 +1,4 @@
+// message.model.js
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
@@ -6,22 +7,23 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
       required: true,
-      index: true
     },
-
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
-
-    content: {
+    text: {
       type: String,
       required: true,
-      trim: true
-    }
+    },
+    seen: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
 export default mongoose.model("Message", messageSchema);
+

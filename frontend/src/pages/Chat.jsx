@@ -1,4 +1,6 @@
+import { Routes, Route } from "react-router-dom";
 import ChatList from "./ChatList";
+import SelectChat from "./SelectChat";
 import ChatWindow from "./ChatWindow";
 
 const Chat = () => {
@@ -12,7 +14,13 @@ const Chat = () => {
 
       {/* Right */}
       <div className="flex-1">
-        <ChatWindow />
+        <Routes>
+          {/* /chat */}
+          <Route index element={<SelectChat />} />
+
+          {/* /chat/:chatId */}
+          <Route path=":chatId" element={<ChatWindow />} />
+        </Routes>
       </div>
 
     </div>
@@ -20,3 +28,4 @@ const Chat = () => {
 };
 
 export default Chat;
+
