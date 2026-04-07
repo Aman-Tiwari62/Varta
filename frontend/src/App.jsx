@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Login from './pages/Login';
 import RegisterEmail from './pages/Register/RegisterEmail';
 import VerifyOtp from './pages/Register/VerifyOtp';
@@ -12,8 +13,17 @@ import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
 import PeopleProfile from './pages/People';
+import useAuthStore from './store/authStore';
 
 const App = () => {
+  // (s) => s.bootstrapAuth; -> This is called a selector function
+  // s = the entire store state. you can think of it as: s = {user, accessToken, loading, bootstrapAuth, logout, setUser, setAccessToken}
+  const bootstrapAuth = useAuthStore((s) => s.bootstrapAuth);
+
+  // this is rehydration - restoring auth state on app reload..
+  useEffect(() => {
+    bootstrapAuth();
+  }, []);
 
   return (
     <div>

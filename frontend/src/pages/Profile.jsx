@@ -1,7 +1,7 @@
-import { useAuth } from "../context/AuthContext";
+import useAuthStore from "../store/authStore";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const user = useAuthStore((s) => s.user);
 
   return (
     <div className="max-w-xl">
@@ -21,7 +21,7 @@ const Profile = () => {
 const ProfileItem = ({ label, value }) => (
   <div>
     <p className="text-sm text-gray-500">{label}</p>
-    <p className="font-medium text-gray-800">{value}</p>
+    <p className="font-medium text-gray-800">{value || 'no email'}</p>
   </div>
 );
 

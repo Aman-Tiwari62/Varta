@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import icon from "../../assets/icon.png";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-
+import useAuthStore from "../../store/authStore";
 
 const RegisterDetails = () => {
   const [name, setName] = useState("");
@@ -10,7 +9,8 @@ const RegisterDetails = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState();
-  const { setUser, setAccessToken } = useAuth();
+  const setUser = useAuthStore((s) => s.setUser);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
 
   const navigate = useNavigate();
 

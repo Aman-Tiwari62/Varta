@@ -1,12 +1,11 @@
+import useAuthStore from "../store/authStore";
+
 export const fetchWithAuth = async ({
   url,
   options = {},
-  accessToken,
-  setAccessToken,
-  setUser,
-  logout,
 }) => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const { accessToken, setAccessToken, setUser, logout } = useAuthStore.getState();
 
   // 1️⃣ Attach access token
   const response = await fetch(`${BACKEND_URL}${url}`, {
@@ -36,7 +35,7 @@ export const fetchWithAuth = async ({
 
     const data = await refreshRes.json();
 
-    // 4️⃣ Update context with new token & user
+    // 4️⃣ Update Zustand auth store with new token & user
     setAccessToken(data.accessToken);
     setUser(data.user);
 

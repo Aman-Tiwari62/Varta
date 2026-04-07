@@ -128,3 +128,29 @@ export const getMessages = async (req, res) => {
   }
 };
 
+export const getConversations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const conversations = await Conversation.find({
+      participants: userId
+    })
+    .populate('participants', 'username profilePic')
+    .populate({
+      path: 'lastMessage',
+      populate: {
+        path: 'senderId',
+        select: 'username'
+      }
+    })
+    .sort({ updatedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      conversations,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
