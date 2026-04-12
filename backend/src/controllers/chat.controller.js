@@ -4,8 +4,8 @@ import Message from '../models/message.model.js'
 export const createConversation = async (req, res) => {
     
     try {
-    const senderId = req.user.id;
-    const { userId } = req.body;
+    const senderId = req.user.id; // user field is added to req body via protect middleware.
+    const { userId } = req.body; // sent by frontend.
 
     // basic validation:
     if (!userId) {
@@ -24,15 +24,30 @@ export const createConversation = async (req, res) => {
     }
 
     // Check if conversation already exists
-    let conversation = await Conversation.findOne({
+    let rawConversation = await Conversation.findOne({
       participants: { $all: [senderId, userId] },
-    });
+      $expr: { $eq: [{ $size: "$participants" }, 2] },
+    }).populate("participants", "name avatar");
 
-    if (!conversation) {
-      conversation = await Conversation.create({
+    if (!rawConversation) {
+      // create conversation:
+      rawConversation = await Conversation.create({
         participants: [senderId, userId],
       });
+      // populate participants for response:
+      await rawConversation.populate("participants", "name avatar");
     }
+    const otherUser = conversation.participants.find(
+      (p) => p._id.toString() !== senderId.toString()
+    );
+
+    const conversation = {
+      _id: rawConversation._id,
+      otherUser,
+      lastMessage: rawConversation.lastMessage,
+      createdAt: rawConversation.createdAt,
+      updatedAt: rawConversation.updatedAt,
+    };
 
     res.status(200).json({
       success: true,
@@ -46,7 +61,7 @@ export const createConversation = async (req, res) => {
 
 
 export const sendMessage = async (req, res) => {
-  const senderId = req.user.id;
+  const senderId = req.user.id; // user field is added to req body via protect middleware.
   const { conversationId, text } = req.body;
 
   if (!text || !conversationId) {
@@ -116,7 +131,7 @@ export const getMessages = async (req, res) => {
     }
     
     const messages = await Message.find({ conversationId })
-      .populate("senderId", "username profilePic")
+      .populate("senderId", "avatar") // we will have sender id and avatar.
       .sort({ createdAt: 1 });
 
     res.status(200).json({
