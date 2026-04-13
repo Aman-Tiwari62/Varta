@@ -2,44 +2,110 @@ import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useChatStore from "../store/chatStore";
 import useAuthStore from "../store/authStore";
+import { initSocket } from "../utils/socket";
 
 const ChatWindow = () => {
   const { chatId } = useParams();
-  const { currentMessages, loading, error, fetchMessages, sendMessage } = useChatStore();
+  const { 
+    currentMessages, 
+    loading, 
+    error, 
+    fetchMessages, 
+    sendMessage,
+    typingUsers,
+    startTyping,
+    stopTyping,
+    leaveCurrentConversation,
+    markAsSeen
+  } = useChatStore();
   const currentUserId = useAuthStore((s) => s.user?._id);
+  const token = useAuthStore((s) => s.accessToken);
   const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   const messagesEndRef = useRef(null);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (token) {
+      initSocket(token);
+    }
+  }, [token]);
 
   // Fetch messages when conversation changes
   useEffect(() => {
     if (chatId) {
       fetchMessages(chatId);
     }
-  }, [chatId, fetchMessages]);
+
+    return () => {
+      leaveCurrentConversation();
+    };
+  }, [chatId, fetchMessages, leaveCurrentConversation]);
 
   // Auto-scroll to bottom when new message arrives
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentMessages]);
 
-  const handleSend = async () => {
+    // Mark last message as seen if it's from the other user
+    if (currentMessages.length > 0) {
+      const lastMessage = currentMessages[currentMessages.length - 1];
+      if (lastMessage.senderId._id !== currentUserId && !lastMessage.seen) {
+        markAsSeen(lastMessage._id, chatId);
+      }
+    }
+  }, [currentMessages, currentUserId, chatId, markAsSeen]);
+
+  const handleSend = () => {
     if (!newMessage.trim() || !chatId) return;
 
     try {
-      await sendMessage(chatId, newMessage.trim());
+      sendMessage(chatId, newMessage.trim());
       setNewMessage("");
+      stopTyping(chatId);
+      setIsTyping(false);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+
+    // Emit typing indicator
+    if (!isTyping && e.target.value.length > 0) {
+      setIsTyping(true);
+      startTyping(chatId);
+    }
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing after user stops for 1 second
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      stopTyping(chatId);
+    }, 1000);
+  };
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Find the other participant for the header
   const conversation = useChatStore((s) => s.conversations.find(c => c._id === chatId));
@@ -68,11 +134,6 @@ const ChatWindow = () => {
 
 
         )}
-        {/* <img
-          src={otherParticipant?.profilePic}
-          alt="avatar"
-          className="h-10 w-10 rounded-full"
-        /> */}
         <div>
           <h2 className="font-semibold text-gray-800">
             {otherParticipant?.username || "Unknown User"}
@@ -100,10 +161,28 @@ const ChatWindow = () => {
                 }`}
               >
                 {msg.text}
+                {isMe && msg.seen && (
+                  <span className="text-xs ml-1">✓✓</span>
+                )}
               </div>
             </div>
           );
         })}
+
+        {/* Typing Indicator */}
+        {Object.entries(typingUsers).some(([userId, isUserTyping]) => 
+          userId !== currentUserId && isUserTyping
+        ) && (
+          <div className="mb-2 flex items-center gap-2 text-gray-500 text-sm">
+            <span>{otherParticipant?.username} is typing</span>
+            <div className="flex gap-1">
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -114,7 +193,7 @@ const ChatWindow = () => {
           placeholder="Type a message"
           className="flex-1 rounded-full border px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />
         <button
